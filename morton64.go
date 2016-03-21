@@ -57,6 +57,9 @@ func Make64(dimensions uint64, bits uint64) *Morton64 {
 func (morton *Morton64) Pack(values []uint64) uint64 {
 	dimensions := uint64(len(values))
 	morton.dimensionsCheck(dimensions)
+	for i := uint64(0); i < dimensions; i++ {
+		morton.valueCheck(values[i])
+	}
 
 	code := uint64(0)
 	for i := uint64(0); i < dimensions; i++ {
@@ -68,18 +71,27 @@ func (morton *Morton64) Pack(values []uint64) uint64 {
 
 func (morton *Morton64) Pack2(value0 uint64, value1 uint64) uint64 {
 	morton.dimensionsCheck(2)
+	morton.valueCheck(value0)
+	morton.valueCheck(value1)
 
 	return morton.split(value0) | (morton.split(value1) << 1)
 }
 
 func (morton *Morton64) Pack3(value0 uint64, value1 uint64, value2 uint64) uint64 {
 	morton.dimensionsCheck(3)
+	morton.valueCheck(value0)
+	morton.valueCheck(value1)
+	morton.valueCheck(value2)
 
 	return morton.split(value0) | (morton.split(value1) << 1) | (morton.split(value2) << 2)
 }
 
 func (morton *Morton64) Pack4(value0 uint64, value1 uint64, value2 uint64, value3 uint64) uint64 {
 	morton.dimensionsCheck(4)
+	morton.valueCheck(value0)
+	morton.valueCheck(value1)
+	morton.valueCheck(value2)
+	morton.valueCheck(value3)
 
 	return morton.split(value0) | (morton.split(value1) << 1) | (morton.split(value2) << 2) | (morton.split(value3) << 3)
 }
@@ -128,7 +140,13 @@ func (morton *Morton64) Unpack4(code uint64) (uint64, uint64, uint64, uint64) {
 
 func (morton *Morton64) dimensionsCheck(dimensions uint64) {
 	if morton.dimensions != dimensions {
-		panic(fmt.Sprintf("morton with %d dimensions on %d dimensions", morton.dimensions, dimensions))
+		panic(fmt.Sprintf("morton with %d dimensions received %d values", morton.dimensions, dimensions))
+	}
+}
+
+func (morton *Morton64) valueCheck(value uint64) {
+	if value >= (1 << morton.bits) {
+		panic(fmt.Sprintf("morton with %d bits per dimension received %d to pack", morton.bits, value))
 	}
 }
 
