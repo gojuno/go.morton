@@ -28,7 +28,7 @@ func Make64(dimensions uint64, bits uint64) *Morton64 {
 
 	masks = append(masks, mask)
 	lshifts = append(lshifts, 0)
-	rshifts = append(rshifts, shift)
+	rshifts = append(rshifts, shift>>1)
 
 	for shift > 0 {
 		mask = 0
@@ -50,6 +50,10 @@ func Make64(dimensions uint64, bits uint64) *Morton64 {
 	}
 
 	rshifts[(len(rshifts) - 1)] = 0
+
+	fmt.Printf("%+v\n", masks)
+	fmt.Printf("%+v\n", lshifts)
+	fmt.Printf("%+v\n", rshifts)
 
 	return &Morton64{dimensions: dimensions, bits: bits, masks: masks, lshifts: lshifts, rshifts: rshifts}
 }
