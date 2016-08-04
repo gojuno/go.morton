@@ -1,0 +1,11 @@
+* Morton Code/Decode Library
+** Basics
+Check [[https://en.wikipedia.org/wiki/Z-order_curve][wikipedia]] for details.
+** Example
+#+BEGIN_SRC go
+import "github.com/iced/go.morton"
+
+m := morton.Make64(2, 32) // 2 dimenstions 32 bits each
+code := m.Pack2(13, 42) // pack two values
+v1, v2 := m.Unpack2(code) // should get back 13 and 42
+#+END_SRC
