@@ -2,6 +2,30 @@ package morton
 
 import "testing"
 
+func BenchmarkSPackUnpack2(b *testing.B) {
+	m := Make64(2, 31)
+	for n := 0; n < b.N; n++ {
+		code := m.SPack2(12345, 67890)
+		m.SUnpack2(code)
+	}
+}
+
+/* NOTE: for go-style error handling
+func BenchmarkSPackUnpack2GoStyle(b *testing.B) {
+	m := Make64(2, 31)
+	for n := 0; n < b.N; n++ {
+		code, err := m.SPack2(12345, 67890)
+		if err != nil {
+			panic("will not happen")
+		}
+		_, _, err := m.SUnpack2(code)
+		if err != nil {
+			panic("will not happen")
+		}
+	}
+}
+*/
+
 func compareValues(t *testing.T, dimensions uint64, bits uint64, value uint64, unpacked uint64) {
 	if unpacked != value {
 		t.Errorf("%d transformed to %d after pack/unpack with %d dimensions and %d bits", value, unpacked, dimensions, bits)
