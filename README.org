@@ -3,7 +3,7 @@
 Check [[https://en.wikipedia.org/wiki/Z-order_curve][wikipedia]] for details.
 ** Example
 #+BEGIN_SRC go
-import "github.com/juno-lab/go.morton"
+import "github.com/gojuno/go.morton"
 
 m := morton.Make64(2, 32) // 2 dimenstions 32 bits each
 code := m.Pack2(13, 42)   // pack two values
