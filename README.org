@@ -1,4 +1,4 @@
-* Morton Code/Decode Library
+* Morton Pack/Unpack Library
 ** Basics
 Check [[https://en.wikipedia.org/wiki/Z-order_curve][wikipedia]] for details.
 ** Example
