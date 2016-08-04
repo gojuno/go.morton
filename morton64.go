@@ -74,12 +74,25 @@ func (morton *Morton64) Pack(values []uint64) uint64 {
 	return code
 }
 
+func (morton *Morton64) SPack(values []int64) uint64 {
+	uvalues := make([]uint64, len(values))
+	for i := 0; i < len(values); i++ {
+		uvalues[i] = morton.signedToUnsigned(values[i])
+	}
+
+	return morton.Pack(uvalues)
+}
+
 func (morton *Morton64) Pack2(value0 uint64, value1 uint64) uint64 {
 	morton.dimensionsCheck(2)
 	morton.valueCheck(value0)
 	morton.valueCheck(value1)
 
 	return morton.split(value0) | (morton.split(value1) << 1)
+}
+
+func (morton *Morton64) SPack2(value0 int64, value1 int64) uint64 {
+	return morton.Pack2(morton.signedToUnsigned(value0), morton.signedToUnsigned(value1))
 }
 
 func (morton *Morton64) Pack3(value0 uint64, value1 uint64, value2 uint64) uint64 {
@@ -91,6 +104,10 @@ func (morton *Morton64) Pack3(value0 uint64, value1 uint64, value2 uint64) uint6
 	return morton.split(value0) | (morton.split(value1) << 1) | (morton.split(value2) << 2)
 }
 
+func (morton *Morton64) SPack3(value0 int64, value1 int64, value2 int64) uint64 {
+	return morton.Pack3(morton.signedToUnsigned(value0), morton.signedToUnsigned(value1), morton.signedToUnsigned(value2))
+}
+
 func (morton *Morton64) Pack4(value0 uint64, value1 uint64, value2 uint64, value3 uint64) uint64 {
 	morton.dimensionsCheck(4)
 	morton.valueCheck(value0)
@@ -99,6 +116,10 @@ func (morton *Morton64) Pack4(value0 uint64, value1 uint64, value2 uint64, value
 	morton.valueCheck(value3)
 
 	return morton.split(value0) | (morton.split(value1) << 1) | (morton.split(value2) << 2) | (morton.split(value3) << 3)
+}
+
+func (morton *Morton64) SPack4(value0 int64, value1 int64, value2 int64, value3 int64) uint64 {
+	return morton.Pack4(morton.signedToUnsigned(value0), morton.signedToUnsigned(value1), morton.signedToUnsigned(value2), morton.signedToUnsigned(value3))
 }
 
 func (morton *Morton64) Unpack(code uint64) []uint64 {
@@ -113,6 +134,17 @@ func (morton *Morton64) Unpack(code uint64) []uint64 {
 	return values
 }
 
+func (morton *Morton64) SUnpack(code uint64) []int64 {
+	uvalues := morton.Unpack(code)
+	values := make([]int64, len(uvalues), len(uvalues))
+
+	for i := 0; i < len(uvalues); i++ {
+		values[i] = morton.unsignedToSigned(uvalues[i])
+	}
+
+	return values
+}
+
 func (morton *Morton64) Unpack2(code uint64) (uint64, uint64) {
 	morton.dimensionsCheck(2)
 
@@ -120,6 +152,11 @@ func (morton *Morton64) Unpack2(code uint64) (uint64, uint64) {
 	value1 := morton.compact(code >> 1)
 
 	return value0, value1
+}
+
+func (morton *Morton64) SUnpack2(code uint64) (int64, int64) {
+	value0, value1 := morton.Unpack2(code)
+	return morton.unsignedToSigned(value0), morton.unsignedToSigned(value1)
 }
 
 func (morton *Morton64) Unpack3(code uint64) (uint64, uint64, uint64) {
@@ -130,6 +167,11 @@ func (morton *Morton64) Unpack3(code uint64) (uint64, uint64, uint64) {
 	value2 := morton.compact(code >> 2)
 
 	return value0, value1, value2
+}
+
+func (morton *Morton64) SUnpack3(code uint64) (int64, int64, int64) {
+	value0, value1, value2 := morton.Unpack3(code)
+	return morton.unsignedToSigned(value0), morton.unsignedToSigned(value1), morton.unsignedToSigned(value2)
 }
 
 func (morton *Morton64) Unpack4(code uint64) (uint64, uint64, uint64, uint64) {
@@ -143,6 +185,11 @@ func (morton *Morton64) Unpack4(code uint64) (uint64, uint64, uint64, uint64) {
 	return value0, value1, value2, value3
 }
 
+func (morton *Morton64) SUnpack4(code uint64) (int64, int64, int64, int64) {
+	value0, value1, value2, value3 := morton.Unpack4(code)
+	return morton.unsignedToSigned(value0), morton.unsignedToSigned(value1), morton.unsignedToSigned(value2), morton.unsignedToSigned(value3)
+}
+
 func (morton *Morton64) dimensionsCheck(dimensions uint64) {
 	if morton.dimensions != dimensions {
 		panic(fmt.Sprintf("morton64 with %d dimensions received %d values", morton.dimensions, dimensions))
@@ -153,6 +200,28 @@ func (morton *Morton64) valueCheck(value uint64) {
 	if value >= (1 << morton.bits) {
 		panic(fmt.Sprintf("morton64 with %d bits per dimension received %d to pack", morton.bits, value))
 	}
+}
+
+func (morton *Morton64) signedToUnsigned(value int64) uint64 {
+	if value >= (1<<(morton.bits-1)) || value <= -(1<<(morton.bits-1)) {
+		panic(fmt.Sprintf("morton64 with %d bits per dimension received signed %d to pack", morton.bits, value))
+	}
+
+	if value < 0 {
+		value = -value
+		value |= 1 << (morton.bits - 1)
+	}
+	return uint64(value)
+}
+
+func (morton *Morton64) unsignedToSigned(value uint64) int64 {
+	sign := value & (1 << (morton.bits - 1))
+	value &= (1 << (morton.bits - 1)) - 1
+	svalue := int64(value)
+	if sign != 0 {
+		svalue = -svalue
+	}
+	return svalue
 }
 
 func (morton *Morton64) split(value uint64) uint64 {
