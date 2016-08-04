@@ -11,6 +11,10 @@ type Morton64 struct {
 }
 
 func Make64(dimensions uint64, bits uint64) *Morton64 {
+	if dimensions == 0 || bits == 0 || dimensions*bits > 64 {
+		panic(fmt.Sprintf("can't make morton64 with %d dimensions and %d bits", dimensions, bits))
+	}
+
 	mask := uint64((1 << bits) - 1)
 
 	shift := dimensions * (bits - 1)
@@ -24,11 +28,9 @@ func Make64(dimensions uint64, bits uint64) *Morton64 {
 
 	masks := make([]uint64, 0)
 	lshifts := make([]uint64, 0)
-	rshifts := make([]uint64, 0)
 
 	masks = append(masks, mask)
 	lshifts = append(lshifts, 0)
-	rshifts = append(rshifts, shift>>1)
 
 	for shift > 0 {
 		mask = 0
@@ -37,19 +39,22 @@ func Make64(dimensions uint64, bits uint64) *Morton64 {
 		for bit := uint64(0); bit < bits; bit++ {
 			distance := (dimensions * bit) - bit
 			shifted |= shift & distance
-			mask |= 1 << bit << (((shift - 1) ^ 0xffffffffffffffff) & distance)
+			mask |= 1 << bit << (((shift - 1) ^ uint64(0xffffffffffffffff)) & distance)
 		}
 
 		if shifted != 0 {
 			masks = append(masks, mask)
 			lshifts = append(lshifts, shift)
-			rshifts = append(rshifts, (shift >> 1))
 		}
 
 		shift >>= 1
 	}
 
-	rshifts[(len(rshifts) - 1)] = 0
+	rshifts := make([]uint64, len(lshifts))
+	for i := 0; i < len(lshifts)-1; i++ {
+		rshifts[i] = lshifts[i+1]
+	}
+	rshifts[len(rshifts)-1] = 0
 
 	return &Morton64{dimensions: dimensions, bits: bits, masks: masks, lshifts: lshifts, rshifts: rshifts}
 }
@@ -140,13 +145,13 @@ func (morton *Morton64) Unpack4(code uint64) (uint64, uint64, uint64, uint64) {
 
 func (morton *Morton64) dimensionsCheck(dimensions uint64) {
 	if morton.dimensions != dimensions {
-		panic(fmt.Sprintf("morton with %d dimensions received %d values", morton.dimensions, dimensions))
+		panic(fmt.Sprintf("morton64 with %d dimensions received %d values", morton.dimensions, dimensions))
 	}
 }
 
 func (morton *Morton64) valueCheck(value uint64) {
 	if value >= (1 << morton.bits) {
-		panic(fmt.Sprintf("morton with %d bits per dimension received %d to pack", morton.bits, value))
+		panic(fmt.Sprintf("morton64 with %d bits per dimension received %d to pack", morton.bits, value))
 	}
 }
 
@@ -162,6 +167,5 @@ func (morton *Morton64) compact(code uint64) uint64 {
 	for o := len(morton.masks) - 1; o >= 0; o-- {
 		code = (code | (code >> morton.rshifts[o])) & morton.masks[o]
 	}
-
 	return code
 }
