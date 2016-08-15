@@ -54,7 +54,7 @@ func TestMake64(t *testing.T) {
 	doTestBadMake64(t, 1, 65)
 }
 
-func doTestValueBoundries(t *testing.T, dimensions uint64, bits uint64, value uint64) {
+func doTestValueBoundaries(t *testing.T, dimensions uint64, bits uint64, value uint64) {
 	defer func() {
 		if r := recover(); r == nil {
 			t.Errorf("unexpected %d packed with %d dimensions and %d bits", value, dimensions, bits)
@@ -70,12 +70,12 @@ func doTestValueBoundries(t *testing.T, dimensions uint64, bits uint64, value ui
 	m.Pack(values)
 }
 
-func TestValueBoundries(t *testing.T) {
-	doTestValueBoundries(t, 2, 1, 2)
-	doTestValueBoundries(t, 16, 4, 16)
+func TestValueBoundaries(t *testing.T) {
+	doTestValueBoundaries(t, 2, 1, 2)
+	doTestValueBoundaries(t, 16, 4, 16)
 }
 
-func doTestSValueBoundries(t *testing.T, dimensions uint64, bits uint64, value int64) {
+func doTestSValueBoundaries(t *testing.T, dimensions uint64, bits uint64, value int64) {
 	defer func() {
 		if r := recover(); r == nil {
 			t.Errorf("unexpected %d packed with %d dimensions and %d bits", value, dimensions, bits)
@@ -91,11 +91,11 @@ func doTestSValueBoundries(t *testing.T, dimensions uint64, bits uint64, value i
 	m.SPack(values)
 }
 
-func TestSValueBoundries(t *testing.T) {
-	doTestSValueBoundries(t, 2, 2, 2)
-	doTestSValueBoundries(t, 2, 2, -2)
-	doTestSValueBoundries(t, 16, 4, 8)
-	doTestSValueBoundries(t, 16, 4, -8)
+func TestSValueBoundaries(t *testing.T) {
+	doTestSValueBoundaries(t, 2, 2, 2)
+	doTestSValueBoundaries(t, 2, 2, -2)
+	doTestSValueBoundaries(t, 16, 4, 8)
+	doTestSValueBoundaries(t, 16, 4, -8)
 }
 
 func doTest2(t *testing.T, bits uint64, value0 uint64, value1 uint64) {
