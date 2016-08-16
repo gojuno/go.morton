@@ -6,6 +6,6 @@ Check [[https://en.wikipedia.org/wiki/Z-order_curve][wikipedia]] for details.
 import "github.com/gojuno/go.morton"
 
 m := morton.Make64(2, 32) // 2 dimenstions 32 bits each
-code := m.Pack2(13, 42)   // pack two values
-v1, v2 := m.Unpack2(code) // should get back 13 and 42
+code := m.Pack(13, 42)    // pack two values
+values := m.Unpack(code)  // should get back 13 and 42
 #+END_SRC
